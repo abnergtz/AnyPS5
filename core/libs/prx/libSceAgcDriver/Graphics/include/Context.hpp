@@ -167,6 +167,7 @@ struct Context {
     bool provokingVertexLast = false;
     bool provokingVertexModePerPipeline = false;
     bool singlePassStorage = false;
+    bool shaderTerminateInvocation = false;
 
     template<typename TFunction>
     TFunction Function(const char* name) const {
