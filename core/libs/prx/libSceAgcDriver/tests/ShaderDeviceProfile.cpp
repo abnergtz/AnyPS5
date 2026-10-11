@@ -110,6 +110,11 @@ void CheckProfile() {
     terminating.extensions.push_back("SPV_KHR_terminate_invocation");
     const AgcDriver::ShaderDeviceProfile terminated(terminating.Target(), terminating.device, terminating.limits);
     Require(std::ranges::find(terminated.Target().supportedExtensions, "SPV_KHR_terminate_invocation") != terminated.Target().supportedExtensions.end(), "enabled shaderTerminateInvocation was rejected");
+    ProfileInput disabled;
+    VkPhysicalDeviceShaderTerminateInvocationFeaturesKHR disabledTerminate{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES_KHR, &disabled.bda, VK_FALSE};
+    disabled.device.pNext = &disabledTerminate;
+    disabled.extensions.push_back("SPV_KHR_terminate_invocation");
+    Reject([&] { AgcDriver::ShaderDeviceProfile rejected(disabled.Target(), disabled.device, disabled.limits); }, "shaderTerminateInvocation");
 }
 
 void CheckAbi() {
