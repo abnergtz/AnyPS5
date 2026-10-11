@@ -170,6 +170,7 @@ Module Inspect(const CompiledShader& compiled, const State& state, const VkPhysi
     std::uint32_t entryPoint = 0;
     std::set<std::uint32_t> executionModeTargets;
     bool upperLeft = false;
+    bool terminateExtension = false;
     for (std::size_t cursor = 5; cursor < words.size();) {
         const auto count = words[cursor] >> 16u;
         Require(count != 0 && count <= words.size() - cursor, "truncated SPIR-V instruction");
@@ -292,11 +293,17 @@ Module Inspect(const CompiledShader& compiled, const State& state, const VkPhysi
                 }
                 if (extension == "SPV_KHR_terminate_invocation") {
                     Require(fragment && shaderTerminateInvocation, "SPV_KHR_terminate_invocation requires enabled shaderTerminateInvocation in a fragment shader");
+                    terminateExtension = true;
                     break;
                 }
                 Require(extension == "SPV_KHR_float_controls" || (imageInt64Atomics && extension == "SPV_EXT_shader_image_int64") || (mesh && (extension == "SPV_EXT_mesh_shader" || extension == "SPV_KHR_physical_storage_buffer")) || (descriptorIndexing && extension == "SPV_EXT_descriptor_indexing") || (shader.bdaAbiVersion == ShaderRecompiler::BdaAbi::Version && (extension == "SPV_KHR_physical_storage_buffer" || extension == "SPV_KHR_8bit_storage")), "unsupported SPIR-V extension");
                 break;
             }
+            case spv::OpTerminateInvocation:
+                Require(count == 1, "invalid OpTerminateInvocation instruction");
+                Require(fragment && shaderTerminateInvocation, "OpTerminateInvocation requires enabled shaderTerminateInvocation in a fragment shader");
+                Require(terminateExtension, "OpTerminateInvocation requires SPV_KHR_terminate_invocation");
+                break;
             case spv::OpDecorateId:
             case spv::OpDecorationGroup:
             case spv::OpGroupDecorate:
